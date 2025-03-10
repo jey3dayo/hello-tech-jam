@@ -2,7 +2,7 @@ import { Shop } from "@/types";
  
 async function fetchShops(keyword?: string): Promise<Shop[]> {
   // 環境変数が設定されているかチェック
-  if (!process.env.NEXT_PUBLIC_API_HOS) {
+  if (!process.env.NEXT_PUBLIC_API_HOST) {
     console.error("環境変数 NEXT_PUBLIC_API_HOST が設定されていません");
     return [];
   }
