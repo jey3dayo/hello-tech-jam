@@ -38,11 +38,11 @@ const Shops = ({ shops }: { shops: Shop[] }) => {
 };
  
 export default async function GourmetsPage({
-  searchParams,
-}: {
-  searchParams: { keyword?: string };
-}) {
-  const shops = await fetchShops(searchParams.keyword);
- 
-  return <Shops shops={shops} />;
-}
+	searchParams: promiseSearchParams,
+  }: {
+	searchParams: Promise<{ keyword?: string }>;
+  }) {
+	const searchParams = await promiseSearchParams;
+	const shops = await fetchShops(searchParams.keyword);
+	return <Shops shops={shops} />;
+  }
