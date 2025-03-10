@@ -1,12 +1,11 @@
 import { Shop } from "@/types";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
  
 async function fetchShops(keyword?: string): Promise<Shop[]> {
-  // 環境変数が設定されているかチェック
-  if (!process.env.NEXT_PUBLIC_API_HOST) {
-    console.error("環境変数 NEXT_PUBLIC_API_HOST が設定されていません");
-    return [];
-  }
- 
   const query = new URLSearchParams();
   if (keyword) query.set("keyword", keyword);
  
@@ -27,22 +26,50 @@ async function fetchShops(keyword?: string): Promise<Shop[]> {
   }
 }
  
-const Shops = ({ shops }: { shops: Shop[] }) => {
-  return (
-    <ul>
-      {shops.map((shop) => (
-        <li key={shop.id}>{shop.name}</li>
-      ))}
-    </ul>
-  );
-};
- 
 export default async function GourmetsPage({
-	searchParams: promiseSearchParams,
-  }: {
-	searchParams: Promise<{ keyword?: string }>;
-  }) {
-	const searchParams = await promiseSearchParams;
-	const shops = await fetchShops(searchParams.keyword);
-	return <Shops shops={shops} />;
-  }
+  searchParams,
+}: {
+  searchParams: Promise<{ keyword?: string }>;
+}) {
+  const params = await searchParams;
+  const shops = await fetchShops(params.keyword);
+ 
+  return (
+    <div className="flex flex-col items-center justify-start min-h-screen pt-36 px-8 md:px-12 lg:px-16">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <form className="flex items-center space-x-4 mb-8">
+        <Input
+          type="search"
+          name="keyword"
+          placeholder="検索..."
+          defaultValue={params.keyword || ""}
+          className="max-w-sm w-full"
+        />
+        <Button type="submit">検索</Button>
+      </form>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
+        {shops.length > 0 ? (
+          shops.map((shop) => (
+            <Card key={shop.id}>
+              <CardHeader className="space-y-4 p-6">
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={shop.photo.pc.m} />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <CardTitle>{shop.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{shop.address || "住所情報なし"}</p>
+                <p>{shop.genre?.name || "ジャンル情報なし"}</p>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p>店舗が見つかりません</p>
+        )}
+      </div>
+    </div>
+  );
+}
