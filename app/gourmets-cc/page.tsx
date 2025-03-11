@@ -1,73 +1,46 @@
-// [page.tsx]
-import { Suspense } from "react";
-import GourmetsClient from "./client";
+"use client";
+ 
+import { useState } from "react";
 import { Shop } from "@/types";
-
-async function fetchInitialShops(): Promise<Shop[]> {
-  // 内部APIルート（相対パス）
-  const relativeUrl = "/api/shops";
-
-  // NEXT_PUBLIC_API_HOSTが設定されていれば、その値を使う
-  const host = process.env.NEXT_PUBLIC_API_HOST;
-  let url: string;
-
-  if (host && !host.includes("${")) {
-    try {
-      // URLが有効かチェック。無効な場合は例外が発生するのでキャッチして相対パスを使用
-      new URL(`${host}/api/shops`);
-      url = `${host}/api/shops`;
-    } catch (error) {
-      console.error("Invalid NEXT_PUBLIC_API_HOST, using relative path:", error);
-      url = relativeUrl;
-    }
-  } else {
-    url = relativeUrl;
-  }
-
-  try {
-    // cache: "no-store" を指定して最新データを取得（必要に応じて調整）
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) {
-      console.error("Failed to fetch initial shops:", res.status, res.statusText);
-      return [];
-    }
-    return await res.json();
-  } catch (error: unknown) {
-    console.error("Error fetching initial shops:", error);
-    // 接続エラー（ECONNREFUSED など）もここでキャッチし、空配列を返す
-    return [];
-  }
-}
-
-export default async function GourmetsPage() {
-  const initialShops = await fetchInitialShops();
-
+import SearchForm from "./search-form";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+ 
+export default function GourmetsClientPage() {
+  const [shops, setShops] = useState<Shop[]>([]);
+ 
+  const handleSearchResults = (results: Shop[]) => {
+    setShops(results);
+  };
+ 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <GourmetsClient initialShops={initialShops} />
-    </Suspense>
+    <div className="flex flex-col items-center justify-start min-h-screen pt-36 px-8 md:px-12 lg:px-16">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <SearchForm onSearchResults={handleSearchResults} />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
+        {shops.length > 0 ? (
+          shops.map((shop) => (
+            <Card key={shop.id}>
+              <CardHeader className="space-y-4 p-6">
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={shop.photo.pc.m} />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <CardTitle>{shop.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{shop.address || "住所情報なし"}</p>
+                <p>{shop.genre?.name || "ジャンル情報なし"}</p>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p>店舗が見つかりません</p>
+        )}
+      </div>
+    </div>
   );
 }
-
-// import { Suspense } from "react";
-// import GourmetsClient from "./client";
-// import { Shop } from "@/types";
- 
-// async function fetchInitialShops(): Promise<Shop[]> {
-//   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/shops`);
-//   if (!res.ok) {
-//     console.error("Failed to fetch initial shops:", res.statusText);
-//     return [];
-//   }
-//   return res.json();
-// }
- 
-// export default async function GourmetsPage() {
-//   const initialShops = await fetchInitialShops();
- 
-//   return (
-//     <Suspense fallback={<div>Loading...</div>}>
-//       <GourmetsClient initialShops={initialShops} />
-//     </Suspense>
-//   );
-// }
