@@ -5,8 +5,10 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize]
     branches:
       - main
+      - 'feat/*'
 
 jobs:
   build-and-lint:
